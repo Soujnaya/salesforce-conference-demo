@@ -2,6 +2,10 @@ function getSessionList(success, error) {
   var soql = "SELECT Session__r.Id, Session__r.Name FROM Session_Speaker__c";
   force.query(soql, success, error);
 }
+function getSpeakerList(success, error){
+   var soql = "SELECT Speaker__r.Id, Speaker__r.First_Name, Speaker__r.Last_Name FROM Speaker__c";
+  force.query(soql, success, error);
+}
 
 function getSessionDetails(sessionId, success, error) {
   var soql = "SELECT Session__r.Name, " +
@@ -10,6 +14,16 @@ function getSessionDetails(sessionId, success, error) {
   "Speaker__r.Last_Name__c " +
   "FROM Session_Speaker__c " +
   "WHERE Session__r.Id = '" + sessionId + "'";
+  force.query(soql, success, error);
+}
+
+function getSpeakerDetails(speakerId, success, error) {
+  var soql =
+  " SELECT Speaker__r.First_Name__c, " +
+  "Speaker__r.Last_Name__c " +
+   "Session__r.Name, " +
+  "FROM Session_Speaker__c " +
+  "WHERE Speaker__r.Id = '" + speakerId + "'";
   force.query(soql, success, error);
 }
 
@@ -25,6 +39,31 @@ function showSessionList() {
                 '<div class="page">' +
                 '<header class="bar bar-nav">' +
                     '<h1 class="title">Sessions</h1>' +
+                '</header>' +
+                '<div class="content">' +
+                    '<ul class="table-view session-list">' + html + '</ul>' +
+                '</div>' +
+                '</div>';
+            slider.slidePage($(html));
+        },
+        function (error) {
+            alert("Error: " + JSON.stringify(error));
+        });
+    return false;
+}
+
+function showSpeakerList() {
+    getSpeakerList(
+        function (data) {
+            var speakers = data.records,
+                html = '';
+            for (var i=0; i<speakers.length; i++) {
+                html += '<li class="table-view-cell"><a href="#speakers/'+ speakers[i].Speaker__r.Id +'">' + speakers[i].Speaker__r.Name + '</a></li>';
+            }
+            html =
+                '<div class="page">' +
+                '<header class="bar bar-nav">' +
+                    '<h1 class="title">Speakers</h1>' +
                 '</header>' +
                 '<div class="content">' +
                     '<ul class="table-view session-list">' + html + '</ul>' +
@@ -73,7 +112,41 @@ function showSessionDetails(sessionId) {
         });
     return false;
 }
+function showSpeakerDetails(speakerId) {
+
+    getSpeakerDetails(speakerId,
+        function (data) {
+            var speaker = data.records[0],
+            html =
+                '<div class="page">' +
+                '<header class="bar bar-nav">' +
+                '<a class="btn btn-link btn-nav pull-left" href="#"><span class="icon icon-left-nav"></span>Back</a>' +
+            '<h1 class="title">Speakers</h1>' +
+                '</header>' +
+                '<div class="content">' +
+                    '<div class="card">' +
+                        '<ul class="table-view">' +
+                            '<li class="table-view-cell">' +
+                                '<h4>' + speaker.Speaker__r.Name + '</h4>' +
+                                '<p>' + (speaker.Speaker__r.Speaker__r.Email__c)+ '</p>' +
+                            '</li>' +
+                            '<li class="table-view-cell">Speaker: ' +
+                                session.Speaker__r.First_Name__c +
+                            '</li>' 
+                        '</ul>' +
+                    '</div>' +
+                '</div>' +
+                '</div>';
+            slider.slidePage($(html));
+        },
+        function (error) {
+            alert("Error: " + JSON.stringify(error));
+        });
+    return false;
+}
 
 var slider = new PageSlider($('body')); // Initialize PageSlider micro-library for nice and hardware-accelerated page transitions
 router.addRoute('', showSessionList);
 router.addRoute('sessions/:id', showSessionDetails);
+router.addRoute('', showSpeakerList);
+router.addRoute('sessions/:id', showSpeakerDetails);
